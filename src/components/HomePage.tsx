@@ -3,7 +3,6 @@ import {
   AnimatePresence,
   motion,
   useScroll,
-  useSpring,
   useTransform,
 } from 'framer-motion';
 import {
@@ -116,56 +115,36 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
   const [activeTile, setActiveTile] = useState<FeatureTile | null>(null);
   const [videoReady, setVideoReady] = useState(false);
 
-  // Subtle hero scroll parallax & fade
-  const { scrollYProgress: heroScroll } = useScroll({
-    target: heroSectionRef,
-    offset: ['start start', 'end start'],
-  });
-  const heroContentY = useTransform(heroScroll, [0, 1], [0, 64]);
-  const heroContentOpacity = useTransform(heroScroll, [0, 0.72], [1, 0]);
-  const heroVideoScale = useTransform(heroScroll, [0, 1], [1.02, 1.12]);
-
-  // Food section scroll-driven parallax (tuned smoothly for both mobile & desktop)
+  // Food section scroll-driven parallax (lightweight direct GPU transforms, zero spring lag)
   const { scrollYProgress } = useScroll({
     target: foodSectionRef,
     offset: ['start end', 'end start'],
   });
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 95,
-    damping: 24,
-    mass: 0.35,
-  });
 
-  const burgerX = useTransform(smoothProgress, [0, 0.48, 1], [-56, 0, -18]);
-  const burgerY = useTransform(smoothProgress, [0, 0.48, 1], [34, 0, -48]);
-  const burgerRotate = useTransform(smoothProgress, [0, 0.48, 1], [-14, 3, 12]);
+  const burgerX = useTransform(scrollYProgress, [0, 0.48, 1], [-48, 0, -14]);
+  const burgerY = useTransform(scrollYProgress, [0, 0.48, 1], [28, 0, -38]);
+  const burgerRotate = useTransform(scrollYProgress, [0, 0.48, 1], [-12, 2, 10]);
 
-  const pizzaX = useTransform(smoothProgress, [0, 0.48, 1], [56, 0, 18]);
-  const pizzaY = useTransform(smoothProgress, [0, 0.48, 1], [38, 0, -52]);
-  const pizzaRotate = useTransform(smoothProgress, [0, 0.48, 1], [14, -3, -12]);
+  const pizzaX = useTransform(scrollYProgress, [0, 0.48, 1], [48, 0, 14]);
+  const pizzaY = useTransform(scrollYProgress, [0, 0.48, 1], [32, 0, -40]);
+  const pizzaRotate = useTransform(scrollYProgress, [0, 0.48, 1], [12, -2, -10]);
 
-  const momosX = useTransform(smoothProgress, [0, 0.55, 1], [-48, 0, -14]);
-  const momosY = useTransform(smoothProgress, [0, 0.55, 1], [60, 0, -40]);
+  const momosX = useTransform(scrollYProgress, [0, 0.55, 1], [-40, 0, -12]);
+  const momosY = useTransform(scrollYProgress, [0, 0.55, 1], [48, 0, -32]);
 
-  const biryaniX = useTransform(smoothProgress, [0, 0.55, 1], [48, 0, 14]);
-  const biryaniY = useTransform(smoothProgress, [0, 0.55, 1], [60, 0, -40]);
+  const biryaniX = useTransform(scrollYProgress, [0, 0.55, 1], [40, 0, 12]);
+  const biryaniY = useTransform(scrollYProgress, [0, 0.55, 1], [48, 0, -32]);
 
-  // Mobile-friendly gentle horizontal glide for momos & biryani row
-  const mobileMomosX = useTransform(smoothProgress, [0.15, 0.55, 0.9], [-22, 0, -10]);
-  const mobileBiryaniX = useTransform(smoothProgress, [0.15, 0.55, 0.9], [22, 0, 10]);
+  const mobileMomosX = useTransform(scrollYProgress, [0.15, 0.55, 0.9], [-18, 0, -8]);
+  const mobileBiryaniX = useTransform(scrollYProgress, [0.15, 0.55, 0.9], [18, 0, 8]);
 
-  // Scroll-driven phone rising smoothly from bottom (Zomato.com signature effect)
+  // Scroll-driven phone rising smoothly from bottom (direct GPU transform)
   const { scrollYProgress: phoneScrollProgress } = useScroll({
     target: phoneSectionRef,
     offset: ['start end', 'center center'],
   });
-  const smoothPhoneProgress = useSpring(phoneScrollProgress, {
-    stiffness: 90,
-    damping: 24,
-    mass: 0.4,
-  });
-  const phoneRiseY = useTransform(smoothPhoneProgress, [0, 1], [110, 0]);
-  const phoneScale = useTransform(smoothPhoneProgress, [0, 1], [0.93, 1]);
+  const phoneRiseY = useTransform(phoneScrollProgress, [0, 1], [90, 0]);
+  const phoneScale = useTransform(phoneScrollProgress, [0, 1], [0.95, 1]);
 
   const scrollToFood = () => {
     foodSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -191,12 +170,11 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
           }`}
         />
 
-        {/* Looping Background Food Video */}
-        <motion.video
-          style={{ scale: heroVideoScale }}
+        {/* Looping Background Food Video (Static GPU layer — zero scroll-scale jank!) */}
+        <video
           onLoadedData={() => setVideoReady(true)}
           onCanPlay={() => setVideoReady(true)}
-          className={`absolute inset-0 w-full h-full object-cover will-change-transform transition-opacity duration-700 ${
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
             videoReady ? 'opacity-100' : 'opacity-0'
           }`}
           src="/hero-food.mp4"
@@ -209,73 +187,42 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
 
         {/* Cinematic Gradient Overlay for Crisp Readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/35 to-black/90" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.65)_100%)]" />
 
         {/* Hero Content */}
-        <motion.div
-          style={{ y: heroContentY, opacity: heroContentOpacity }}
-          className="relative z-10 w-full max-w-4xl mx-auto px-5 pt-24 pb-10 sm:py-20 text-center flex flex-col items-center will-change-transform"
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/12 backdrop-blur-md border border-white/20 text-white/95 text-xs sm:text-sm font-bold mb-4 sm:mb-5"
-          >
-            <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
+        <div className="relative z-10 w-full max-w-4xl mx-auto px-5 pt-24 pb-10 sm:py-20 text-center flex flex-col items-center">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/55 border border-white/20 text-white/95 text-xs sm:text-sm font-bold mb-4 sm:mb-5">
+            <span className="w-2 h-2 rounded-full bg-[#22C55E]" />
             Now Serving {ZUPPO_LINKS.city}
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.94 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.65, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-            className="text-5xl sm:text-7xl font-black italic tracking-tight text-white drop-shadow-[0_6px_24px_rgba(0,0,0,0.5)]"
-          >
+          <div className="text-5xl sm:text-7xl font-black italic tracking-tight text-white">
             zuppo
-          </motion.div>
+          </div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-2.5 text-[32px] sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-[1.1] drop-shadow-md"
-          >
+          <h1 className="mt-2.5 text-[32px] sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-[1.1]">
             Ambikapur&apos;s #1
             <br />
             food delivery app
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-3.5 max-w-md sm:max-w-xl text-[13.5px] sm:text-lg text-white/85 font-medium leading-relaxed"
-          >
+          <p className="mt-3.5 max-w-md sm:max-w-xl text-[13.5px] sm:text-lg text-white/85 font-medium leading-relaxed">
             Fast, fresh doorstep delivery from Ambikapur&apos;s favourite kitchens — with live GPS tracking and zero fuss.
-          </motion.p>
+          </p>
 
           {/* Download Buttons Row */}
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-7 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-sm sm:max-w-none"
-          >
+          <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-sm sm:max-w-none">
             {/* Primary Direct APK Download */}
-            <motion.a
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.96 }}
+            <a
               href={ZUPPO_LINKS.apk.customer}
-              className="cta-shimmer w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-[#E62225] hover:bg-[#cf1b1e] text-white font-extrabold text-sm sm:text-base px-7 py-3.5 rounded-2xl shadow-xl shadow-red-600/35 transition-colors"
+              className="cta-shimmer w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-[#E62225] hover:bg-[#cf1b1e] active:scale-95 text-white font-extrabold text-sm sm:text-base px-7 py-3.5 rounded-2xl shadow-lg shadow-red-600/30 transition-all"
             >
               <Download className="w-5 h-5" />
               Download Android App
-            </motion.a>
+            </a>
 
             {/* Google Play & App Store — Coming Soon */}
             <div className="w-full sm:w-auto grid grid-cols-2 sm:flex items-center justify-center gap-2.5">
-              <div className="inline-flex items-center justify-center sm:justify-start gap-2 bg-black/70 backdrop-blur-md border border-white/20 text-white px-3.5 py-2.5 rounded-2xl select-none">
+              <div className="inline-flex items-center justify-center sm:justify-start gap-2 bg-black/80 border border-white/20 text-white px-3.5 py-2.5 rounded-2xl select-none">
                 <svg className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M3.609 1.814L13.792 12 3.61 22.186a1.77 1.77 0 0 1-.61-1.34V3.154c0-.525.235-.996.609-1.34zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z" />
                 </svg>
@@ -287,7 +234,7 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
                 </div>
               </div>
 
-              <div className="inline-flex items-center justify-center sm:justify-start gap-2 bg-black/70 backdrop-blur-md border border-white/20 text-white px-3.5 py-2.5 rounded-2xl select-none">
+              <div className="inline-flex items-center justify-center sm:justify-start gap-2 bg-black/80 border border-white/20 text-white px-3.5 py-2.5 rounded-2xl select-none">
                 <svg className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.96 6.32c.67-.81 1.12-1.94 1-3.07-.96.04-2.13.64-2.82 1.45-.61.71-1.15 1.86-1 2.96 1.07.08 2.16-.53 2.82-1.34" />
                 </svg>
@@ -299,26 +246,17 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Scroll Down Indicator */}
-          <motion.button
+          <button
             onClick={scrollToFood}
-            whileTap={{ scale: 0.92 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
-            className="mt-8 sm:mt-14 inline-flex flex-col items-center gap-1 text-white/80 hover:text-white transition-colors cursor-pointer"
+            className="mt-8 sm:mt-14 inline-flex flex-col items-center gap-1 text-white/80 hover:text-white active:scale-95 transition-all cursor-pointer"
           >
             <span className="text-[11px] font-bold tracking-widest uppercase">Scroll down</span>
-            <motion.div
-              animate={{ y: [0, 6, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <ChevronDown className="w-5 h-5" />
-            </motion.div>
-          </motion.button>
-        </motion.div>
+            <ChevronDown className="w-5 h-5 animate-bounce" />
+          </button>
+        </div>
       </section>
 
       {/* ===================================================================== */}
