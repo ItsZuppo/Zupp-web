@@ -114,6 +114,7 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
 
   const [phoneView, setPhoneView] = useState<'home' | 'dish'>('home');
   const [activeTile, setActiveTile] = useState<FeatureTile | null>(null);
+  const [videoReady, setVideoReady] = useState(false);
 
   // Subtle hero scroll parallax & fade
   const { scrollYProgress: heroScroll } = useScroll({
@@ -183,10 +184,21 @@ export const HomePage: React.FC<HomePageProps> = ({ navigate }) => {
         ref={heroSectionRef}
         className="relative w-full min-h-[100dvh] flex flex-col items-center justify-end sm:justify-center overflow-hidden bg-[#0B0F19]"
       >
+        {/* Warm Dark Shimmer Skeleton while Hero Video buffers */}
+        <div
+          className={`pointer-events-none absolute inset-0 bg-gradient-to-br from-[#161114] via-[#211518] to-[#0B0F19] transition-opacity duration-700 ${
+            videoReady ? 'opacity-0' : 'opacity-100 animate-pulse'
+          }`}
+        />
+
         {/* Looping Background Food Video */}
         <motion.video
           style={{ scale: heroVideoScale }}
-          className="absolute inset-0 w-full h-full object-cover will-change-transform"
+          onLoadedData={() => setVideoReady(true)}
+          onCanPlay={() => setVideoReady(true)}
+          className={`absolute inset-0 w-full h-full object-cover will-change-transform transition-opacity duration-700 ${
+            videoReady ? 'opacity-100' : 'opacity-0'
+          }`}
           src="/hero-food.mp4"
           autoPlay
           loop

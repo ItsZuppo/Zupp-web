@@ -1,29 +1,60 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Download, MessageCircle } from 'lucide-react';
 import { ZUPPO_LINKS } from '../config/links';
 import { InquiryForm } from './InquiryForm';
 
 export const RiderPage: React.FC = () => {
+  const [heroLoaded, setHeroLoaded] = useState(false);
+  const desktopImgRef = useRef<HTMLImageElement>(null);
+  const mobileImgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    if (desktopImgRef.current?.complete || mobileImgRef.current?.complete) {
+      setHeroLoaded(true);
+    }
+  }, []);
+
   return (
     <main className="w-full bg-white">
       {/* Full-Bleed Sexy Editorial Hero — Airy Stacked Photo on Mobile, Widescreen Cinema on Desktop */}
       <section className="relative w-full bg-[#071410] text-white pt-16 sm:pt-36 pb-12 sm:pb-24 overflow-hidden">
+        {/* Emerald-Dark Shimmer Skeleton while Hero Image Loads */}
+        <div
+          className={`pointer-events-none absolute inset-0 bg-gradient-to-r from-[#071410] via-[#0F2920] to-[#091B15] transition-opacity duration-500 ${
+            heroLoaded ? 'opacity-0' : 'opacity-100 animate-pulse'
+          }`}
+        />
+
         {/* Mobile-Only Clean Unobstructed Hero Photo at Top */}
-        <div className="sm:hidden relative w-full h-[230px] overflow-hidden">
+        <div className="sm:hidden relative w-full h-[230px] overflow-hidden bg-[#0B1E17]">
           <img
+            ref={mobileImgRef}
             src="/images/rider-hero.jpg"
             alt="Zuppo Delivery Partner"
-            className="w-full h-full object-cover object-[76%_15%] select-none"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+            onLoad={() => setHeroLoaded(true)}
+            className={`w-full h-full object-cover object-[76%_15%] select-none transition-opacity duration-500 ${
+              heroLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
           />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#071410] via-[#071410]/60 to-transparent" />
         </div>
 
         {/* Desktop-Only Widescreen Cinema Background */}
         <img
+          ref={desktopImgRef}
           src="/images/rider-hero.jpg"
           alt="Zuppo Delivery Partner"
-          className="hidden sm:block pointer-events-none select-none absolute inset-0 w-full h-full object-cover object-right-top opacity-90"
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
+          onLoad={() => setHeroLoaded(true)}
+          className={`hidden sm:block pointer-events-none select-none absolute inset-0 w-full h-full object-cover object-right-top transition-opacity duration-500 ${
+            heroLoaded ? 'opacity-90' : 'opacity-0'
+          }`}
         />
         <div className="hidden sm:block pointer-events-none absolute inset-0 bg-gradient-to-r from-[#071410] via-[#071410]/75 to-transparent" />
         <div className="hidden sm:block pointer-events-none absolute inset-0 bg-gradient-to-t from-[#071410] via-transparent to-[#071410]/45" />

@@ -1,29 +1,60 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Download, MessageCircle } from 'lucide-react';
 import { ZUPPO_LINKS } from '../config/links';
 import { InquiryForm } from './InquiryForm';
 
 export const PartnerPage: React.FC = () => {
+  const [heroLoaded, setHeroLoaded] = useState(false);
+  const desktopImgRef = useRef<HTMLImageElement>(null);
+  const mobileImgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    if (desktopImgRef.current?.complete || mobileImgRef.current?.complete) {
+      setHeroLoaded(true);
+    }
+  }, []);
+
   return (
     <main className="w-full bg-white">
       {/* Full-Bleed Sexy Editorial Hero — Airy Stacked Photo on Mobile, Widescreen Cinema on Desktop */}
       <section className="relative w-full bg-[#110C0A] text-white pt-16 sm:pt-36 pb-12 sm:pb-24 overflow-hidden">
+        {/* Warm Amber Shimmer Skeleton while Hero Image Loads */}
+        <div
+          className={`pointer-events-none absolute inset-0 bg-gradient-to-r from-[#110C0A] via-[#26160F] to-[#1A100B] transition-opacity duration-500 ${
+            heroLoaded ? 'opacity-0' : 'opacity-100 animate-pulse'
+          }`}
+        />
+
         {/* Mobile-Only Clean Unobstructed Hero Photo at Top */}
-        <div className="sm:hidden relative w-full h-[230px] overflow-hidden">
+        <div className="sm:hidden relative w-full h-[230px] overflow-hidden bg-[#1C120D]">
           <img
+            ref={mobileImgRef}
             src="/images/partner-hero.jpg"
             alt="Zuppo Partner Kitchen"
-            className="w-full h-full object-cover object-[78%_20%] select-none"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+            onLoad={() => setHeroLoaded(true)}
+            className={`w-full h-full object-cover object-[78%_20%] select-none transition-opacity duration-500 ${
+              heroLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
           />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#110C0A] via-[#110C0A]/60 to-transparent" />
         </div>
 
         {/* Desktop-Only Widescreen Cinema Background */}
         <img
+          ref={desktopImgRef}
           src="/images/partner-hero.jpg"
           alt="Zuppo Partner Kitchen"
-          className="hidden sm:block pointer-events-none select-none absolute inset-0 w-full h-full object-cover object-right-top opacity-90"
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
+          onLoad={() => setHeroLoaded(true)}
+          className={`hidden sm:block pointer-events-none select-none absolute inset-0 w-full h-full object-cover object-right-top transition-opacity duration-500 ${
+            heroLoaded ? 'opacity-90' : 'opacity-0'
+          }`}
         />
         <div className="hidden sm:block pointer-events-none absolute inset-0 bg-gradient-to-r from-[#110C0A] via-[#110C0A]/75 to-transparent" />
         <div className="hidden sm:block pointer-events-none absolute inset-0 bg-gradient-to-t from-[#110C0A] via-transparent to-[#110C0A]/45" />

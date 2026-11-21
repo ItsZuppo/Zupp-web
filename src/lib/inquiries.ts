@@ -1,6 +1,5 @@
-const SUPABASE_URL = 'https://bhmwdyvaaodzekxjytom.supabase.co';
-const SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJobXdkeXZhYW9kemVreGp5dG9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxNzQ3OTUsImV4cCI6MjEwODc1MDc5NX0.EjKOz-jbVSdzobHUwXt5m0wAI8XQzr2DMZVKDEnZ164';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 const TABLE_ENDPOINT = `${SUPABASE_URL}/rest/v1/website_inquiries`;
 const RPC_BASE = `${SUPABASE_URL}/rest/v1/rpc`;
